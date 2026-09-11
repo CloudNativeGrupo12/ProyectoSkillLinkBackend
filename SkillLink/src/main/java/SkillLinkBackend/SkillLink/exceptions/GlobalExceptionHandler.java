@@ -10,6 +10,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.net.URI;
@@ -18,6 +20,8 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(RecursoNoEncontradoException.class)
     public ProblemDetail manejarNoEncontrado(RecursoNoEncontradoException ex) {
@@ -97,6 +101,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail manejarIntegridad(DataIntegrityViolationException ex) {
+        log.warn("Violacion de integridad: {}", ex.getMostSpecificCause().getMessage());
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
                 "La operacion viola una restriccion de integridad de datos.");
         detail.setTitle("Conflicto de datos");
@@ -105,6 +110,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail manejarInesperado(Exception ex) {
+        log.error("Error interno no controlado", ex);
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR,
                 "Ocurrio un error interno inesperado.");
         detail.setTitle("Error interno");

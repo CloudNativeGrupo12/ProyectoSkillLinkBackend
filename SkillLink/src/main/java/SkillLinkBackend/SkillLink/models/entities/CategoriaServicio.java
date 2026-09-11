@@ -30,6 +30,13 @@ public class CategoriaServicio {
     @Column(nullable = false, length = 100)
     private String nombre;
 
+    @Column(columnDefinition = "TEXT")
+    private String descripcion;
+
+    /** Clave del icono que renderiza el frontend (ej: fitness, programacion). */
+    @Column(length = 50)
+    private String icono;
+
     @ManyToMany(mappedBy = "categorias")
     private List<Servicio> servicios = new ArrayList<>();
 

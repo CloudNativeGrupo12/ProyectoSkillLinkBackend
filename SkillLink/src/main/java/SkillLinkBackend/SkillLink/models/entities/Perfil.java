@@ -50,6 +50,12 @@ public class Perfil {
     @Column(name = "tipo_ofrecimiento_id")
     private Integer tipoOfrecimientoId;
 
+    @Column(name = "titulo_profesional", length = 100)
+    private String tituloProfesional;
+
+    @Column(name = "anios_experiencia")
+    private Integer aniosExperiencia;
+
     @OneToMany(mappedBy = "perfil")
     private List<Certificacion> certificaciones = new ArrayList<>();
 

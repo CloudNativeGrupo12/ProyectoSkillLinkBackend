@@ -1,0 +1,52 @@
+### Variables (no versionar tokens reales)
+@baseUrl = http://localhost:8080
+# @baseUrl = https://<api-id>.execute-api.us-east-1.amazonaws.com
+@accessToken = REEMPLAZAR_ACCESS_TOKEN
+
+### 1. Público → 200
+GET {{baseUrl}}/api/v1/public/health
+
+### 2. Catálogo público (dominio) → 200
+GET {{baseUrl}}/api/v1/catalogo/publicaciones?categoriaId=1
+
+### 3. Protegido sin token → 401
+GET {{baseUrl}}/api/v1/auth/me
+
+### 4. Token inválido → 401
+GET {{baseUrl}}/api/v1/auth/me
+Authorization: Bearer token-invalido
+
+### 5. Token válido → 200 (claims relevantes)
+GET {{baseUrl}}/api/v1/auth/me
+Authorization: Bearer {{accessToken}}
+
+### 6. Identidad resuelta contra el dominio (onboarding) → 200
+GET {{baseUrl}}/api/v1/usuarios/me
+Authorization: Bearer {{accessToken}}
+
+### 7. Escritura por scope → 403 sin skilllink.write / 201 con scope
+POST {{baseUrl}}/api/v1/catalogo/publicaciones
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "titulo": "Clases de guitarra",
+  "descripcion": "Clases para principiantes, presencial u online.",
+  "categoriaId": 9,
+  "precio": 15000,
+  "nombreAutor": "Nombre Apellido"
+}
+
+### 8. Rol ADMIN → 403 sin rol / 200 con rol
+GET {{baseUrl}}/api/v1/admin/ping
+Authorization: Bearer {{accessToken}}
+
+### 9. Operación pública de escritura → 201
+POST {{baseUrl}}/api/v1/public/suscripciones
+Content-Type: application/json
+
+{ "email": "interesado@ejemplo.cl" }
+
+### 10. CORS: origen no permitido (acceso directo al backend) → 403
+GET {{baseUrl}}/api/v1/public/health
+Origin: http://malicioso.example

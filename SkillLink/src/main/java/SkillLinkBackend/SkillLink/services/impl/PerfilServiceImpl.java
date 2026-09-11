@@ -100,6 +100,8 @@ public class PerfilServiceImpl implements PerfilService {
         perfil.setTrabajador(trabajador);
         perfil.setCategoriaServicio(cargarCategoria(request.getCategoriaServicioId()));
         perfil.setTipoOfrecimientoId(request.getTipoOfrecimientoId());
+        perfil.setTituloProfesional(request.getTituloProfesional());
+        perfil.setAniosExperiencia(request.getAniosExperiencia());
     }
 
     private void aplicarRequest(Perfil perfil, ActualizarPerfil request) {
@@ -119,9 +121,14 @@ public class PerfilServiceImpl implements PerfilService {
         perfil.setTrabajador(trabajador);
         perfil.setCategoriaServicio(cargarCategoria(request.getCategoriaServicioId()));
         perfil.setTipoOfrecimientoId(request.getTipoOfrecimientoId());
+        perfil.setTituloProfesional(request.getTituloProfesional());
+        perfil.setAniosExperiencia(request.getAniosExperiencia());
     }
 
     private void validarPerfilEsDueno(Persona personaCliente, Persona personaTrabajador) {
+        if (SecurityUtils.esAdmin()) {
+            return;
+        }
         String emailToken = SecurityUtils.emailObligatorio();
         if (personaTrabajador != null && !emailToken.equals(personaTrabajador.getEmail().toLowerCase())) {
             throw new AccionNoPermitidaException("El perfil pertenece a un trabajador distinto del usuario autenticado.");
@@ -160,6 +167,8 @@ public class PerfilServiceImpl implements PerfilService {
                 perfil.getCliente() != null ? perfil.getCliente().getId() : null,
                 perfil.getTrabajador() != null ? perfil.getTrabajador().getId() : null,
                 perfil.getCategoriaServicio() != null ? perfil.getCategoriaServicio().getId() : null,
-                perfil.getTipoOfrecimientoId());
+                perfil.getTipoOfrecimientoId(),
+                perfil.getTituloProfesional(),
+                perfil.getAniosExperiencia());
     }
 }

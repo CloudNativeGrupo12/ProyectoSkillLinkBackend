@@ -11,8 +11,8 @@
 	<groupId>SkillLinkBackend</groupId>
 	<artifactId>SkillLink</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
+	<name>SkillLink</name>
+	<description>SkillLink API - Spring Boot Resource Server (EV1 DSY1107)</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -73,7 +73,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<scope>test</scope>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
