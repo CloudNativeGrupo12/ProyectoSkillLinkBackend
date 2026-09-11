@@ -38,6 +38,8 @@ public class CategoriaServicioServiceImpl implements CategoriaServicioService {
     public CategoriaServicioDto crear(AgregarCategoriaServicio request) {
         CategoriaServicio categoria = new CategoriaServicio();
         categoria.setNombre(request.getNombre());
+        categoria.setDescripcion(request.getDescripcion());
+        categoria.setIcono(request.getIcono());
         return aDto(categoriaServicioRepository.save(categoria));
     }
 
@@ -46,6 +48,8 @@ public class CategoriaServicioServiceImpl implements CategoriaServicioService {
     public CategoriaServicioDto actualizar(Long id, ActualizarCategoriaServicio request) {
         CategoriaServicio categoria = obtenerEntidad(id);
         categoria.setNombre(request.getNombre());
+        categoria.setDescripcion(request.getDescripcion());
+        categoria.setIcono(request.getIcono());
         return aDto(categoriaServicioRepository.save(categoria));
     }
 
@@ -61,6 +65,6 @@ public class CategoriaServicioServiceImpl implements CategoriaServicioService {
     }
 
     private CategoriaServicioDto aDto(CategoriaServicio categoria) {
-        return new CategoriaServicioDto(categoria.getId(), categoria.getNombre());
+        return new CategoriaServicioDto(categoria.getId(), categoria.getNombre(), categoria.getDescripcion(), categoria.getIcono());
     }
 }

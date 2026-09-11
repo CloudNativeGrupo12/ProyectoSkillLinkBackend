@@ -18,5 +18,7 @@ public class PerfilDto {
     private Long trabajadorId;
     private Long categoriaServicioId;
     private Integer tipoOfrecimientoId;
+    private String tituloProfesional;
+    private Integer aniosExperiencia;
 
 }

@@ -44,8 +44,30 @@ public class Publicacion {
     private Perfil perfil;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "curriculum_id", nullable = false)
+    @JoinColumn(name = "curriculum_id")
     private Curriculum curriculum;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "servicio_id")
+    private Servicio servicio;
+
+    @Column(length = 150)
+    private String titulo;
+
+    @Column(columnDefinition = "TEXT")
+    private String descripcion;
+
+    @Column(length = 20)
+    private String estado = "activo";
+
+    @Column(name = "modalidad_precio", length = 30)
+    private String modalidadPrecio;
+
+    @Column(name = "calificacion_promedio", precision = 3, scale = 2)
+    private BigDecimal calificacionPromedio = BigDecimal.ZERO;
+
+    @Column(name = "total_resenas")
+    private Integer totalResenas = 0;
 
     @Column(name = "precio_min", nullable = false, precision = 10, scale = 2)
     private BigDecimal precioMin;

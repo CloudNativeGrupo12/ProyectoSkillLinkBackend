@@ -12,6 +12,14 @@ public interface PublicacionRepository extends JpaRepository<Publicacion, Long> 
 
     List<Publicacion> findByPerfilId(Long perfilId);
 
+    List<Publicacion> findByPerfilTrabajadorIdOrderByCreadoEnDesc(Long trabajadorId);
+
+    List<Publicacion> findByPerfilCategoriaServicioIdOrderByCalificacionPromedioDesc(Long categoriaId);
+
+    List<Publicacion> findAllByOrderByCalificacionPromedioDesc();
+
+    long countByPerfilCategoriaServicioId(Long categoriaId);
+
     @Query("""
             SELECT DISTINCT p FROM Publicacion p
             JOIN p.perfil pf
@@ -21,7 +29,9 @@ public interface PublicacionRepository extends JpaRepository<Publicacion, Long> 
               AND (:comunaId IS NULL OR c.id = :comunaId)
               AND (:precioMin IS NULL OR p.precioMax >= :precioMin)
               AND (:precioMax IS NULL OR p.precioMin <= :precioMax)
-              AND (:termino IS NULL OR LOWER(p.tipoPublicacion) LIKE LOWER(CONCAT('%', :termino, '%')))
+              AND (:termino IS NULL OR LOWER(p.tipoPublicacion) LIKE LOWER(CONCAT('%', :termino, '%'))
+                   OR LOWER(COALESCE(p.titulo, '')) LIKE LOWER(CONCAT('%', :termino, '%'))
+                   OR LOWER(COALESCE(p.descripcion, '')) LIKE LOWER(CONCAT('%', :termino, '%')))
             """)
     List<Publicacion> buscar(
             @Param("categoriaId") Long categoriaId,

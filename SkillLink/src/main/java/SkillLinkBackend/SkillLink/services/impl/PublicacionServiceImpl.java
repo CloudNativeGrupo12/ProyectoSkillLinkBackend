@@ -8,11 +8,13 @@ import SkillLinkBackend.SkillLink.models.dto.PublicacionDto;
 import SkillLinkBackend.SkillLink.models.entities.Curriculum;
 import SkillLinkBackend.SkillLink.models.entities.Perfil;
 import SkillLinkBackend.SkillLink.models.entities.Publicacion;
+import SkillLinkBackend.SkillLink.models.entities.Servicio;
 import SkillLinkBackend.SkillLink.models.requests.ActualizarPublicacion;
 import SkillLinkBackend.SkillLink.models.requests.AgregarPublicacion;
 import SkillLinkBackend.SkillLink.repositories.CurriculumRepository;
 import SkillLinkBackend.SkillLink.repositories.PerfilRepository;
 import SkillLinkBackend.SkillLink.repositories.PublicacionRepository;
+import SkillLinkBackend.SkillLink.repositories.ServicioRepository;
 import SkillLinkBackend.SkillLink.services.PublicacionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ public class PublicacionServiceImpl implements PublicacionService {
     private final PublicacionRepository publicacionRepository;
     private final PerfilRepository perfilRepository;
     private final CurriculumRepository curriculumRepository;
+    private final ServicioRepository servicioRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -68,14 +71,11 @@ public class PublicacionServiceImpl implements PublicacionService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Perfil no encontrado con id " + request.getPerfilId()));
         verificarPropiedad(perfil);
         Publicacion publicacion = new Publicacion();
-        publicacion.setTipoPublicacion(request.getTipoPublicacion());
         publicacion.setPerfil(perfil);
-        publicacion.setCurriculum(validarCurriculum(request.getCurriculumId(), request.getPerfilId()));
-        publicacion.setPrecioMin(request.getPrecioMin());
-        publicacion.setPrecioMax(request.getPrecioMax());
-        publicacion.setTipoPrecio(request.getTipoPrecio());
-        publicacion.setMoneda(request.getMoneda());
-        publicacion.setDuracionEstimada(request.getDuracionEstimada());
+        aplicar(publicacion, request.getTipoPublicacion(), request.getTitulo(), request.getDescripcion(),
+                request.getEstado(), request.getCurriculumId(), request.getServicioId(), request.getPrecioMin(),
+                request.getPrecioMax(), request.getTipoPrecio(), request.getModalidadPrecio(), request.getMoneda(),
+                request.getDuracionEstimada());
         return aDto(publicacionRepository.save(publicacion));
     }
 
@@ -90,14 +90,11 @@ public class PublicacionServiceImpl implements PublicacionService {
                     .orElseThrow(() -> new RecursoNoEncontradoException("Perfil no encontrado con id " + request.getPerfilId()));
             verificarPropiedad(perfil);
         }
-        publicacion.setTipoPublicacion(request.getTipoPublicacion());
         publicacion.setPerfil(perfil);
-        publicacion.setCurriculum(validarCurriculum(request.getCurriculumId(), request.getPerfilId()));
-        publicacion.setPrecioMin(request.getPrecioMin());
-        publicacion.setPrecioMax(request.getPrecioMax());
-        publicacion.setTipoPrecio(request.getTipoPrecio());
-        publicacion.setMoneda(request.getMoneda());
-        publicacion.setDuracionEstimada(request.getDuracionEstimada());
+        aplicar(publicacion, request.getTipoPublicacion(), request.getTitulo(), request.getDescripcion(),
+                request.getEstado(), request.getCurriculumId(), request.getServicioId(), request.getPrecioMin(),
+                request.getPrecioMax(), request.getTipoPrecio(), request.getModalidadPrecio(), request.getMoneda(),
+                request.getDuracionEstimada());
         return aDto(publicacionRepository.save(publicacion));
     }
 
@@ -109,7 +106,31 @@ public class PublicacionServiceImpl implements PublicacionService {
         publicacionRepository.delete(publicacion);
     }
 
+    private void aplicar(Publicacion publicacion, String tipoPublicacion, String titulo, String descripcion,
+                         String estado, Long curriculumId, Long servicioId, BigDecimal precioMin, BigDecimal precioMax,
+                         BigDecimal tipoPrecio, String modalidadPrecio, String moneda, String duracionEstimada) {
+        if (precioMin != null && precioMax != null && precioMin.compareTo(precioMax) > 0) {
+            throw new SolicitudInvalidaException("precioMin no puede ser mayor que precioMax.");
+        }
+        publicacion.setTipoPublicacion(tipoPublicacion);
+        publicacion.setTitulo(titulo);
+        publicacion.setDescripcion(descripcion);
+        publicacion.setEstado(estado == null || estado.isBlank() ? "activo" : estado.trim().toLowerCase());
+        publicacion.setCurriculum(validarCurriculum(curriculumId, publicacion.getPerfil().getId()));
+        publicacion.setServicio(cargarServicio(servicioId));
+        publicacion.setPrecioMin(precioMin);
+        publicacion.setPrecioMax(precioMax);
+        publicacion.setTipoPrecio(tipoPrecio);
+        publicacion.setModalidadPrecio(modalidadPrecio);
+        publicacion.setMoneda(moneda);
+        publicacion.setDuracionEstimada(duracionEstimada);
+    }
+
+    /** El dueno del perfil (email del token) o un ADMIN pueden modificar la publicacion. */
     private void verificarPropiedad(Perfil perfil) {
+        if (SecurityUtils.esAdmin()) {
+            return;
+        }
         if (perfil.getTrabajador() == null) {
             throw new AccionNoPermitidaException("La publicacion requiere un perfil con trabajador asociado.");
         }
@@ -121,6 +142,9 @@ public class PublicacionServiceImpl implements PublicacionService {
     }
 
     private Curriculum validarCurriculum(Long curriculumId, Long perfilId) {
+        if (curriculumId == null) {
+            return null;
+        }
         Curriculum curriculum = curriculumRepository.findById(curriculumId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Curriculum no encontrado con id " + curriculumId));
         if (curriculum.getPerfil() == null || !curriculum.getPerfil().getId().equals(perfilId)) {
@@ -129,23 +153,38 @@ public class PublicacionServiceImpl implements PublicacionService {
         return curriculum;
     }
 
+    private Servicio cargarServicio(Long servicioId) {
+        if (servicioId == null) {
+            return null;
+        }
+        return servicioRepository.findById(servicioId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Servicio no encontrado con id " + servicioId));
+    }
+
     private Publicacion obtenerEntidad(Long id) {
         return publicacionRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Publicacion no encontrada con id " + id));
     }
 
-    private PublicacionDto aDto(Publicacion publicacion) {
+    private PublicacionDto aDto(Publicacion p) {
         return new PublicacionDto(
-                publicacion.getId(),
-                publicacion.getTipoPublicacion(),
-                publicacion.getCreadoEn(),
-                publicacion.getActualizadoEn(),
-                publicacion.getPerfil() != null ? publicacion.getPerfil().getId() : null,
-                publicacion.getCurriculum() != null ? publicacion.getCurriculum().getId() : null,
-                publicacion.getPrecioMin(),
-                publicacion.getPrecioMax(),
-                publicacion.getTipoPrecio(),
-                publicacion.getMoneda(),
-                publicacion.getDuracionEstimada());
+                p.getId(),
+                p.getTipoPublicacion(),
+                p.getTitulo(),
+                p.getDescripcion(),
+                p.getEstado(),
+                p.getCreadoEn(),
+                p.getActualizadoEn(),
+                p.getPerfil() != null ? p.getPerfil().getId() : null,
+                p.getCurriculum() != null ? p.getCurriculum().getId() : null,
+                p.getServicio() != null ? p.getServicio().getId() : null,
+                p.getPrecioMin(),
+                p.getPrecioMax(),
+                p.getTipoPrecio(),
+                p.getModalidadPrecio(),
+                p.getMoneda(),
+                p.getDuracionEstimada(),
+                p.getCalificacionPromedio(),
+                p.getTotalResenas());
     }
 }

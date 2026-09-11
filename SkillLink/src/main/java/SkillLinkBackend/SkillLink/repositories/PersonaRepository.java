@@ -13,9 +13,7 @@ public interface PersonaRepository extends JpaRepository<Persona, Long> {
 
     Optional<Persona> findByEmail(String email);
 
-    @Query("select distinct p from Persona p "
-            + "left join fetch p.clientes "
-            + "left join fetch p.trabajadores "
-            + "where lower(p.email) = lower(:email)")
+    /** Los roles (clientes/trabajadores) se cargan de forma perezosa dentro de la transaccion. */
+    @Query("select p from Persona p where lower(p.email) = lower(:email)")
     Optional<Persona> findByEmailConRoles(@Param("email") String email);
 }

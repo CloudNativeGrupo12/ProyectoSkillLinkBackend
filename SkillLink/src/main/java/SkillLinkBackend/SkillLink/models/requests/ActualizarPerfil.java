@@ -2,6 +2,7 @@ package SkillLinkBackend.SkillLink.models.requests;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,5 +30,11 @@ public class ActualizarPerfil {
     private Long categoriaServicioId;
 
     private Integer tipoOfrecimientoId;
+
+    @Size(max = 100)
+    private String tituloProfesional;
+
+    @PositiveOrZero
+    private Integer aniosExperiencia;
 
 }

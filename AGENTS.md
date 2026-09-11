@@ -59,14 +59,34 @@ Schema de referencia: `docs/bd-ejemplo.sql`
 - `servicios` ↔ `categorias_servicio` (N:M), jerarquía geográfica `paises` → `regiones` → `ciudades` → `comunas` (N:M con clientes y trabajadores)
 - `membresias` (Gratuito, Pro, Premium)
 
+## Seguridad (EV1)
+
+- `config/SecurityConfig.java`: Resource Server OAuth2 (firma + `iss` + `aud` + `exp`), `AuthoritiesConverter` (`scp`/`scope` → `SCOPE_*`, `roles` → `ROLE_*`), respuestas 401/403 en `application/problem+json`.
+- Política: `/api/v1/public/**` y `GET` de catálogos públicos; escritura de recursos de usuario → `SCOPE_skilllink.write`; `/api/v1/admin/**` y escritura de catálogos maestros → `ROLE_ADMIN`; resto de `/api/**` autenticado.
+- Propiedad del recurso: los servicios comparan el email del token con la `Persona` dueña (admin omite la verificación).
+- Valores por entorno: `JWT_ISSUER`, `JWT_AUDIENCE`, `JWT_JWK_SET_URI`, `APP_WRITE_SCOPE`, `APP_ADMIN_ROLE`, `CORS_ALLOWED_ORIGINS` (ver `docs/AZURE-ENTRA-ID.md`).
+- Modelo de lectura para la SPA: `services/CatalogoService` + `controller/CatalogoController` (`/api/v1/catalogo/**`), onboarding automático en `GET /api/v1/usuarios/me`.
+- Matriz 200/401/403 automatizada: `src/test/java/.../SeguridadMatrizTests.java`.
+
+## Perfiles de ejecución
+
+| Perfil | Base de datos | Uso |
+| :-- | :-- | :-- |
+| `dev` (defecto) | PostgreSQL local (`docker compose up db`) | desarrollo |
+| `local` | H2 en archivo `./data/` | desarrollo sin Docker |
+| `prod` | PostgreSQL por variables (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`) | AWS (RDS) |
+| `test` | H2 en memoria | `./mvnw test` |
+
+`DataSeeder` carga datos de demostración cuando la base está vacía (`APP_SEED_ENABLED`).
+
 ## Estado actual (verificado en el repo)
 
 | Capa | Estado |
 | :-- | :-- |
-| `models/entities/` | ✅ 14 entidades JPA creadas (esqueleto) |
-| `models/requests/` | ✅ DTOs `Agregar*`/`Actualizar*` para Persona, Cliente, Trabajador, Perfil, Publicacion, Servicio, CategoriaServicio, Curriculum, Certificacion, Membresia |
-| `models/dto/` | ❌ **No existe** — debe crearse antes de implementar servicios |
-| `config/`, `controller/`, `services/`, `repositories/` | ❌ Directorios vacíos |
-| `exceptions/` | ❌ No existe el manejador global |
-| `application.properties` | ⚠️ Solo `spring.application.name=SkillLink`; falta DataSource y perfiles (`dev`, `prod`) |
-| Tests | ⚠️ Solo el test boilerplate `SkillLinkApplicationTests` |
+| `models/entities/` | ✅ 15 entidades JPA (incluye `SuscripcionInteres`) |
+| `models/requests/` y `models/dto/` | ✅ completos (incluye `dto/catalogo/*` para la SPA) |
+| `config/`, `controller/`, `services/`, `repositories/` | ✅ implementados |
+| `exceptions/` | ✅ `GlobalExceptionHandler` RFC 7807 |
+| `application*.properties` | ✅ perfiles `dev`, `local`, `prod`, `test` |
+| Tests | ✅ `SkillLinkApplicationTests`, `SeguridadMatrizTests` (matriz 200/401/403) |
+| Despliegue | ✅ `Dockerfile`, `docker-compose.yml`, `deploy/aws`, `deploy/azure`, `docs/AWS-DESPLIEGUE.md` |

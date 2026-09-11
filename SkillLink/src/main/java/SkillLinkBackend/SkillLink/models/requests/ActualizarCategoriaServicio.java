@@ -17,4 +17,10 @@ public class ActualizarCategoriaServicio {
     @Size(max = 100)
     private String nombre;
 
+    @Size(max = 2000)
+    private String descripcion;
+
+    @Size(max = 50)
+    private String icono;
+
 }
