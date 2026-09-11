@@ -1,6 +1,6 @@
 # Probar SkillLink desde otra máquina
 
-Todo lo necesario está versionado en dos repositorios; no se requiere Docker ni credenciales secretas
+Todo lo necesario está versionado en dos repositorios (rama `feature/ev1-seguridad-cloud` hasta que se haga merge a `main`); no se requiere Docker ni credenciales secretas
 para la prueba local (los identificadores del tenant de Entra ID son públicos).
 
 ```text
@@ -20,7 +20,7 @@ https://github.com/CloudNativeGrupo12/SkillLinkFrontend          (SPA Angular)
 ## 2. Backend (terminal 1)
 
 ```bash
-git clone https://github.com/CloudNativeGrupo12/ProyectoSkillLinkBackend.git
+git clone -b feature/ev1-seguridad-cloud https://github.com/CloudNativeGrupo12/ProyectoSkillLinkBackend.git
 cd ProyectoSkillLinkBackend/SkillLink
 ./run-local.sh            # Linux/macOS   (Windows: .\run-local.ps1)
 ```
@@ -40,7 +40,7 @@ Pruebas automatizadas de la matriz 200/401/403: `./mvnw test`.
 ## 3. Frontend (terminal 2)
 
 ```bash
-git clone https://github.com/CloudNativeGrupo12/SkillLinkFrontend.git
+git clone -b feature/ev1-seguridad-cloud https://github.com/CloudNativeGrupo12/SkillLinkFrontend.git
 cd SkillLinkFrontend
 npm ci
 npm start                 # http://localhost:4200
